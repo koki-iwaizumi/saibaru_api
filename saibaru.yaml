@@ -1,0 +1,844 @@
+openapi: 3.0.0
+info:
+  description: "農業サポートシステム「SAIBARU」のAPIです。"
+  version: "1.0.0"
+  title: "SAIBARU API"
+  contact:
+    name: "APIサポートはこちら"
+    url: http://saibaru.cloud/contact/
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+servers:
+  - url: https://ji01.saibaru.cloud/v1/production/
+  - url: https://ji02.saibaru.cloud/v1/production/
+  - url: https://ji03.saibaru.cloud/v1/production/
+  - description: SwaggerHub API Auto Mocking
+    url: https://virtserver.swaggerhub.com/koki-iwaizumi/saibaru/1.0.0
+paths:
+  /token:
+    post:
+      tags:
+        - token
+      summary: APIトークンの取得
+      description: APIを取得するためのAPIトークンを取得します。APIトークンはAPI使用時、必須のパラメーターになります。レスポンスには有効期限も含まれています。有効期限まで、取得したAPIは使用可能です。※アクセストークンはマイページで確認できます。
+      parameters:
+        - $ref: '#/components/parameters/Contenttype'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                accesstoken:
+                  type: string
+                  description: アクセストークン
+                  example: test_accesstoken
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenSet'
+        "400":
+          description: 不正なリクエストです。
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenSet'
+              example:
+                messages:
+                  - "invalid request"
+                apitoken: ""
+                expires: ""
+    get:
+      tags:
+        - token
+      summary: APIトークンの確認
+      description: APIトークンが使用可能か確認します。使用可能な場合はレスポンスに有効期限も含まれます。
+      parameters:
+        - $ref: '#/components/parameters/Token'
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenSet'
+        "400":
+          description: 不正なリクエストです。
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenSet'
+              example:
+                messages:
+                  - "invalid request"
+                apitoken: ""
+                expires: ""
+        "404":
+          description: 有効なAPIトークンではありません。
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenSet'
+              example:
+                messages:
+                  - "not found"
+                apitoken: ""
+                expires: ""
+  /module:
+    get:
+      tags:
+        - module
+      summary: モジュールの取得
+      description: 登録済みのモジュール一覧を取得します。
+      parameters:
+        - $ref: '#/components/parameters/Token'
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: 
+                $ref: '#/components/schemas/ModuleSet'
+        "400":
+          description: 不正なリクエストです。
+          content:
+            application/json:
+              schema: 
+                $ref: '#/components/schemas/ModuleSet'
+              example:
+                messages:
+                  - "invalid request"
+                modules: null
+    post:
+      tags:
+        - module
+      summary: モジュールの編集
+      description: 指定したuuidのモジュールの設定値を編集します。intervaltimeは60,3600,7200,86400[s]から選択します。※upperlimit,lowerlimitは文字列（例："3.5"）で送信します。
+      parameters:
+        - $ref: '#/components/parameters/Token'
+        - $ref: '#/components/parameters/Contenttype'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Module'
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Messages'
+        "400":
+          description: 不正なリクエストです。
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Messages'
+              example:
+                messages:
+                  - "invalid request"
+        "404":
+          description: 指定されたuuidのモジュールがありません。
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Messages'
+              example:
+                messages:
+                  - "not found uuid"
+  /alertemail:
+    get:
+      tags:
+        - alertemail
+      summary: アラートメールの取得
+      description: 登録済みのアラートメール一覧を取得します。
+      parameters:
+        - $ref: '#/components/parameters/Token'
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AlertemailSet'
+        "400":
+          description: 不正なリクエストです。
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AlertemailSet'
+              example:
+                messages:
+                  - "invalid request"              
+                alertemails: null
+    post:
+      tags:
+        - alertemail
+      summary: アラートメールの登録及び編集
+      description: 複数のアラートメールを登録します。既に登録されたメールアドレスがある場合、上書き保存されます。（最大登録数:10）
+      parameters:
+        - $ref: '#/components/parameters/Token'
+        - $ref: '#/components/parameters/Contenttype'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Alertemails'
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Messages'
+        "400":
+          description: 不正なリクエストです。
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Messages'
+              example:
+                messages:
+                  - "invalid request"
+    delete:
+      tags:
+        - alertemail
+      summary: アラートメールの削除
+      description: アラートメールを削除します。
+      parameters:
+        - $ref: '#/components/parameters/Token'
+        - name: email
+          in: query
+          description: メール
+          required: true
+          schema:
+            type: string
+            format: email
+          example: test1@test.test
+      responses:
+        "200":
+          description: アラートメールが削除されました。
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Messages'
+        "400":
+          description: 不正なリクエストです。
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Messages'
+              example:
+                messages:
+                  - "invalid request"
+        "404":
+          description: 指定されたアラートメールがありません。
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Messages'
+              example:
+                messages:
+                  - "not found email"
+  /alertemail/test:
+    post:
+      tags:
+        - alertemail
+      summary: アラートメールのテスト送信
+      description: 登録したメールアドレスで、ステータスが有効なものにテスト送信します。
+      parameters:
+        - $ref: '#/components/parameters/Token'
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Messages'
+              example:
+                messages:
+                  - "info@jinto.cloud: メール送信に成功しました。"
+                  - "test finish"
+        "400":
+          description: 不正なリクエストです。
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Messages'
+              example:
+                messages:
+                  - "invalid request"  
+  /datalog:
+    get:
+      tags:
+        - datalog
+      summary: データログの取得
+      description:       指定したuuidのparameterのモジュールのデータログ一覧を取得します。最大取得数を超えた場合はpageを指定すると取得データがオフセットされます。
+      parameters:
+        - $ref: '#/components/parameters/Token'
+        - $ref: '#/components/parameters/Uuid'
+        - $ref: '#/components/parameters/Parameter'
+        - $ref: '#/components/parameters/Per_page'
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/From'
+        - $ref: '#/components/parameters/To'
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DatalogSet'
+        "400":
+          description: 不正なリクエストです。
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DatalogSet'
+              example:
+                messages:
+                  - "invalid request"
+                total: 0
+                page: 0
+                per_page: 0
+                uuid: ""
+                parameter: ""
+                to: ""
+                from: ""
+                datalogs: null
+        "404":
+          description: 指定されたuuidがありません。
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DatalogSet'
+              example:
+                messages:
+                  - "not found uuid"
+                total: 0
+                page: 0
+                per_page: 0
+                uuid: ""
+                parameter: ""
+                to: ""
+                from: ""
+                datalogs: null
+  /alertlog:
+    get:
+      tags:
+        - alertlog
+      summary: アラートログの取得
+      description: 指定したuuidのparameterのモジュールのアラートログ一覧を取得します。最大取得数を超えた場合はpageを指定すると取得データがオフセットされます。
+      parameters:
+        - $ref: '#/components/parameters/Token'
+        - $ref: '#/components/parameters/Uuid'
+        - $ref: '#/components/parameters/Parameter'
+        - $ref: '#/components/parameters/Per_page'
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/From'
+        - $ref: '#/components/parameters/To'
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AlertlogSet'
+        "400":
+          description: 不正なリクエストです。
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AlertlogSet'
+              example:
+                messages:
+                  - "invalid request"
+                total: 0
+                page: 0
+                per_page: 0
+                uuid: ""
+                parameter: ""
+                to: ""
+                from: ""
+                alertlogs: null
+        "404":
+          description: 指定されたuuidがありません。
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AlertlogSet'
+              example:
+                messages:
+                 - "not found uuid"
+                total: 0
+                page: 0
+                per_page: 0
+                uuid: ""
+                parameter: ""
+                to: ""
+                from: ""
+                alertlogs: null
+  /webhook:
+    get:
+      tags:
+        - webhook
+      summary: webhook用エンドポイントの取得
+      description: webhook用のエンドポイント一覧を取得します。
+      parameters:
+        - $ref: '#/components/parameters/Token'
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WebhookSet'
+        "400":
+          description: 不正なリクエストです。
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WebhookSet'
+              example:
+                messages:
+                 - "invalid request"
+                webhooks: null
+    post:
+      tags:
+        - webhook
+      summary: webhook用エンドポイントの登録及び編集
+      description: 複数のエンドポイントを登録します。既に登録されたエンドポイントがある場合、上書き保存されます。（最大登録数:2）
+      parameters:
+        - $ref: '#/components/parameters/Token'
+        - $ref: '#/components/parameters/Contenttype'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Webhooks'
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Messages'
+        "400":
+          description: 不正なリクエストです。
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Messages'
+              example:
+                messages:
+                  - "invalid request"
+    delete:
+      tags:
+        - webhook
+      summary: webhook用エンドポイントの削除
+      description: webhook用エンドポイントを削除します。
+      parameters:
+        - $ref: '#/components/parameters/Token'
+        - name: url
+          in: query
+          description: webhook用エンドポイントURL
+          required: true
+          schema:
+            type: string
+            format: url
+          example: "http://cloudhard.jp/api/"
+      responses:
+        "200":
+          description: webhook用エンドポイントが削除されました。
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Messages'
+        "400":
+          description: 不正なリクエストです。
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Messages'
+              example:
+                messages:
+                  - "invalid request"
+        "404":
+          description: 指定されたwebhook用エンドポイントがありません。
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Messages'
+              example:
+                messages:
+                  - "not found url"
+  /webhook/datatest:
+    post:
+      tags:
+        - webhook
+      summary: webhookのデータ受信時 テスト送信
+      description: 登録したwebhookで、ステータスが有効、かつ、イベント条件がデータ受信時のURLにテスト送信します。
+      parameters:
+        - $ref: '#/components/parameters/Token'
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Messages'
+              example:
+                messages:
+                  - "https://test.endpointURL/: テスト送信完了しました。 ステータスコード: 200"
+                  - "test finish"
+        "400":
+          description: 不正なリクエストです。
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Messages'
+              example:
+                messages:
+                  - "invalid request"
+  /webhook/alerttest:
+    post:
+      tags:
+        - webhook
+      summary: webhookのアラート発生時 テスト送信
+      description: 登録したwebhookで、ステータスが有効、かつ、イベント条件がアラート発生時のURLにテスト送信します。
+      parameters:
+        - $ref: '#/components/parameters/Token'
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Messages'
+              example:
+                messages:
+                  - "https://test.endpointURL/: テスト送信完了しました。 ステータスコード: 200"
+                  - "test finish"
+        "400":
+          description: 不正なリクエストです。
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Messages'
+              example:
+                messages:
+                  - "invalid request"
+components:
+  schemas:
+    Messages:
+      type: object
+      properties:
+        messages:
+          type: array
+          items:
+            type: string
+          example:
+            - "success"
+    Uuid:
+      type: string
+      minLength: 16
+      maxLength: 16
+      example: "5JT0010000000000"
+    Status:
+      type: string
+      enum: ["無効", "有効"]
+      example: "有効"
+    Parameter:
+      type: string
+      enum: ["temperature", "humidity", "illumination", "co2", "battery", "watertemperature", "thermocouple", "accelerationx", "accelerationy", "accelerationz", "gyrox", "gyroy", "gyroz", "atmospressure", "ec"]
+      example: "temperature"
+    Page:
+      type: integer
+      default: 1
+      example: 1
+    Per_page:
+      type: integer
+      default: 200
+      maximum: 400
+      example: 200
+    Event:
+      type: string
+      enum: ["アラート発生時", "データ受信時", "データ受信・アラート発生時"]
+      example: "アラート発生時"
+      default: "アラート発生時"
+    TokenSet:
+      allOf:
+        - $ref: '#/components/schemas/Messages'
+        - type: object
+          properties:
+            apitoken:
+              type: string
+              example: "test_token"
+            expires:
+              type: string
+              example: "2013-10-17T10:00:00"
+    Module:
+      type: object
+      properties:
+        uuid:
+          $ref: '#/components/schemas/Uuid'
+        status:
+          $ref: '#/components/schemas/Status'
+        memo:
+          type: string
+          example: "memo"
+        alert:
+          type: array
+          items:
+            $ref: '#/components/schemas/Alert'
+          example:
+            - parameter: "temperature"
+              intervaltime: 3600
+              upperlimit: "80"
+              lowerlimit: "未設定"
+            - parameter: "humidity"
+              intervaltime: 60
+              upperlimit: "未設定"
+              lowerlimit: "未設定"
+            - parameter: "battery"
+              intervaltime: 7200
+              upperlimit: "未設定"
+              lowerlimit: "3.5"
+    ModuleSet:
+      allOf:
+        - $ref: '#/components/schemas/Messages'
+        - type: object
+          properties:
+            modules:
+              type: array
+              items:
+                $ref: '#/components/schemas/Module'
+    Alert:
+      type: object
+      properties:
+        parameter:
+          $ref: '#/components/schemas/Parameter'
+        intervaltime:
+          type: integer
+          enum: [60, 3600, 7200, 86400]
+          example: 3600
+        upperlimit:
+          type: string
+          example: "未設定"
+        lowerlimit:
+          type: string
+          example: "未設定"
+    Alertemail:
+      type: object
+      properties:
+        email:
+          type: string
+          example: "test@test.test"
+          format: email
+        status:
+          $ref: '#/components/schemas/Status'
+    Alertemails:
+      type: object
+      properties:
+        alertemails:
+          type: array
+          items:
+            $ref: '#/components/schemas/Alertemail'
+          example:
+            - email: test1@test.test
+              status: "有効"
+            - email: test2@test.test
+              status: "無効"
+    AlertemailSet:
+      allOf:
+        - $ref: '#/components/schemas/Messages'
+        - $ref: '#/components/schemas/Alertemails'
+    Datalog:
+      type: object
+      properties:
+        value:
+          type: number
+          example: 10.0
+          format: double
+        gettime:
+          type: string
+          example: "2013-10-17T10:00:00"
+    Pager:
+      type: object
+      properties:
+        total:
+          type: integer
+          example: 2
+        page:
+          $ref: '#/components/schemas/Page'
+        per_page:
+          $ref: '#/components/schemas/Per_page'
+    DatalogSet:
+      allOf:
+        - $ref: '#/components/schemas/Messages'
+        - $ref: '#/components/schemas/Pager'
+        - $ref: '#/components/schemas/Time'
+        - type: object
+          properties:
+            uuid:
+              $ref: '#/components/schemas/Uuid'
+            parameter:
+              $ref: '#/components/schemas/Parameter'
+            parameter_name:
+              $ref: '#/components/schemas/Parameter_name'
+            unit:
+              $ref: '#/components/schemas/Unit'
+            datalogs:
+              type: array
+              items:
+                $ref: '#/components/schemas/Datalog'
+              example:
+                - value: 25.65487
+                  gettime: "2019-06-02T10:00:00"
+                - value: 26.59875
+                  gettime: "2019-06-02T10:10:00"
+    Alertlog:
+      allOf:
+        - $ref: '#/components/schemas/Datalog'
+        - type: object
+          properties:
+            limitstatus:
+              type: string
+              example: "上限"
+              enum: ["上限","下限"]
+            limitvalue:
+              type: string
+              example: "10.0"
+    AlertlogSet:
+      allOf:
+        - $ref: '#/components/schemas/Messages'
+        - $ref: '#/components/schemas/Pager'
+        - $ref: '#/components/schemas/Time'
+        - type: object
+          properties:
+            uuid:
+              $ref: '#/components/schemas/Uuid'
+            parameter:
+              $ref: '#/components/schemas/Parameter'
+            parameter_name:
+              $ref: '#/components/schemas/Parameter_name'
+            unit:
+              $ref: '#/components/schemas/Unit'
+            alertlogs:
+              type: array
+              items:
+                $ref: '#/components/schemas/Alertlog'
+              example:
+                - value: 80.65487
+                  gettime: "2019-06-02T10:56:42"
+                  limitstatus: "上限"
+                  limitvalue: "80.0"
+                - value: -1.59875
+                  gettime: "2019-06-05T02:14:10"
+                  limitstatus: "下限"
+                  limitvalue: "0.0"
+    Webhook:
+      type: object
+      properties:
+        uri:
+          type: string
+          format: url
+        event:
+          $ref: '#/components/schemas/Event'
+        status:
+          $ref: '#/components/schemas/Status'
+    Webhooks:
+      type: object
+      properties:
+        webhooks:
+          type: array
+          items:
+            $ref: '#/components/schemas/Webhook'
+          example:
+          - url: "https://jinto.cloud/api/"
+            event: "アラート発生時"
+            status: "有効"
+          - url: "http://cloudhard.jp/api/"
+            event: "データ受信・アラート発生時"
+            status: "無効"
+    WebhookSet:
+      allOf:
+        - $ref: '#/components/schemas/Messages'
+        - $ref: '#/components/schemas/Webhooks'
+    Time:
+      type: object
+      properties:
+        to:
+          type: string
+          example: "2019-06-15T10:00:00"
+        from:
+          type: string
+          example: "2019-06-02T10:00:00"
+    Parameter_name:
+      type: string
+      example: "気温"
+    Unit:
+      type: string
+      example: "°C"
+  parameters:
+    Token:
+      name: X-Cloud-Token
+      in: header
+      schema:
+        type: string
+      required: true
+      description: APIトークン
+      example: test_token
+    Contenttype:
+      name: Content-Type
+      in: header
+      schema:
+        type: string
+      required: true
+      description: application/json
+      example: application/json
+    Uuid:
+      name: uuid
+      in: query
+      description: UUID
+      required: true
+      schema:
+        $ref: '#/components/schemas/Uuid'
+    Parameter:
+      name: parameter
+      in: query
+      required: true
+      description: パラメーター
+      schema:
+        $ref: '#/components/schemas/Parameter'
+    Per_page:
+      name: per_page
+      in: query
+      schema:
+        $ref: '#/components/schemas/Per_page'
+      description: 取得数(最大:400)
+    Page:
+      name: page
+      in: query
+      description: ページ
+      schema:
+        $ref: '#/components/schemas/Page'
+    From:
+      name: from
+      in: query
+      description: 開始時間(デフォルト：7日前) ※日本時間
+      schema:
+        type: string
+      example: "2019-06-02T10:00:00"
+    To:
+      name: to
+      in: query
+      description: 終了時間(デフォルト：現在日時) ※日本時間
+      schema:
+        type: string
+      example: "2019-06-15T10:00:00"
