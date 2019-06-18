@@ -10,9 +10,9 @@ info:
     name: Apache 2.0
     url: http://www.apache.org/licenses/LICENSE-2.0.html
 servers:
-  - url: https://ji01.saibaru.cloud/v1/production/
-  - url: https://ji02.saibaru.cloud/v1/production/
-  - url: https://ji03.saibaru.cloud/v1/production/
+  - url: https://sa01.saibaru.cloud/v1/production/
+  - url: https://sa02.saibaru.cloud/v1/production/
+  - url: https://sa03.saibaru.cloud/v1/production/
   - description: SwaggerHub API Auto Mocking
     url: https://virtserver.swaggerhub.com/koki-iwaizumi/saibaru/1.0.0
 paths:
